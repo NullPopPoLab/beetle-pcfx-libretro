@@ -1288,7 +1288,7 @@ static void check_variables(bool loaded)
 #define MAX_PLAYERS 2
 #define MAX_BUTTONS 15
 static uint32 input_type[MAX_PLAYERS] = {0};
-static uint16 input_buf[MAX_PLAYERS] = {0};
+static uint32 input_buf[MAX_PLAYERS] = {0};
 static int16  mousedata[MAX_PLAYERS][3] = {{0}, {0}};
 
 static void ReadM3U(std::vector<std::string> &file_list, std::string path, unsigned depth = 0)
@@ -1475,10 +1475,10 @@ bool retro_load_game(const struct retro_game_info *info)
       { 0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_RIGHT, "D-Pad Right" },
       { 0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_B,     "II" },
       { 0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_A,     "I" },
-      { 0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_X,     "III" },
-      { 0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_Y,     "IV" },
-      { 0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_L,     "V" },
-      { 0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_R,     "VI" },
+      { 0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_C,     "III" },
+      { 0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_Z,     "IV" },
+      { 0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_Y,     "V" },
+      { 0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_X,     "VI" },
       { 0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_L2,    "MODE 1 (Switch)" },
       { 0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_R2,    "MODE 2 (Switch)" },
       { 0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_SELECT,    "Select" },
@@ -1490,10 +1490,10 @@ bool retro_load_game(const struct retro_game_info *info)
       { 1, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_RIGHT, "D-Pad Right" },
       { 1, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_B,     "II" },
       { 1, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_A,     "I" },
-      { 1, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_X,     "III" },
-      { 1, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_Y,     "IV" },
-      { 1, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_L,     "V" },
-      { 1, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_R,     "VI" },
+      { 1, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_C,     "III" },
+      { 1, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_Z,     "IV" },
+      { 1, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_Y,     "V" },
+      { 1, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_X,     "VI" },
       { 1, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_L2,    "MODE 1 (Switch)" },
       { 1, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_R2,    "MODE 2 (Switch)" },
       { 1, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_SELECT,    "Select" },
@@ -1600,10 +1600,10 @@ static void update_input(void)
    static unsigned map[] = {
       RETRO_DEVICE_ID_JOYPAD_A,
       RETRO_DEVICE_ID_JOYPAD_B,
-      RETRO_DEVICE_ID_JOYPAD_X,
+      RETRO_DEVICE_ID_JOYPAD_C,
+      RETRO_DEVICE_ID_JOYPAD_Z,
       RETRO_DEVICE_ID_JOYPAD_Y,
-      RETRO_DEVICE_ID_JOYPAD_L,
-      RETRO_DEVICE_ID_JOYPAD_R,
+      RETRO_DEVICE_ID_JOYPAD_X,
       RETRO_DEVICE_ID_JOYPAD_SELECT,
       RETRO_DEVICE_ID_JOYPAD_START,
       RETRO_DEVICE_ID_JOYPAD_UP,
@@ -1622,7 +1622,7 @@ static void update_input(void)
          case RETRO_DEVICE_JOYPAD:
             if (libretro_supports_bitmasks)
             {
-               int16_t ret = input_state_cb(j, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_MASK);
+               int32_t ret = input_state_cb(j, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_MASK);
                for (unsigned i = 0; i < MAX_BUTTONS; i++)
                   input_buf[j] |= (map[i] != -1u) &&
                      (ret & (1 << map[i])) ? (1 << i) : 0;
@@ -1635,11 +1635,11 @@ static void update_input(void)
             }
 #ifdef MSB_FIRST
             union {
-               uint8_t b[2];
-               uint16_t s;
+               uint8_t b[4];
+               uint32_t s;
             } u;
             u.s = input_buf[j];
-            input_buf[j] = u.b[0] | u.b[1] << 8;
+            input_buf[j] = u.b[0] | (u.b[1] << 8) | (u.b[2] << 16) | (u.b[3] << 24);
 #endif
             break;
          case RETRO_DEVICE_MOUSE:
